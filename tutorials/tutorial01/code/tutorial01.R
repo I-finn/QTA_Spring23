@@ -4,8 +4,45 @@
 
 ## Packages
 library(tidyverse) # load our packages here
-library(rvest)
+library(rvest)  # harvest html
 library(xml2)
+
+rm(list=ls())
+
+# detach all libraries
+detachAllPackages <- function() {
+  basic.packages <- c("package:stats", "package:graphics", "package:grDevices", "package:utils", "package:datasets", "package:methods", "package:base")
+  package.list <- search()[ifelse(unlist(gregexpr("package:", search()))==1, TRUE, FALSE)]
+  package.list <- setdiff(package.list, basic.packages)
+  if(length(package.list)>0)  for(package in package.list) detach(package,  character.only=TRUE)
+}
+detachAllPackages()
+
+# load libraries
+pkgTest <- function(pkg){
+  new.pkg <- pkg[!(pkg %in% installed.packages()[,  "Package"])]
+  if(length(new.pkg)) 
+    install.packages(new.pkg,  dependencies = TRUE)
+  sapply(pkg,  require,  character.only = TRUE)
+}
+
+# load necessary packages
+lapply(c("ggplot2", "stargazer", "tidyverse", "stringr", "car",
+         "broom", "gridExtra"),  
+       pkgTest)
+lapply(c("ggplot2", "tidyverse"), pkgTest)
+#require(gridExtra)
+
+# function to save output to a file that you can read in later to your docs
+output_stargazer <- function(outputFile, appendVal=TRUE, ...) {
+  output <- capture.output(stargazer(...))
+  cat(paste(output, collapse = "\n"), "\n", file=outputFile, append=appendVal)
+}
+
+# set working directory to current parent folder
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+getwd()
+
 
 ##################
 # Importing html #
@@ -14,12 +51,12 @@ library(xml2)
 # We use the read_html() function from rvest to read in the html
 bowlers <- "https://stats.espncricinfo.com/ci/content/records/93276.html"
 
-html <- read_html()
+html <- read_html(bowlers)
 html
 
 # We can inspect the structure of this html using xml_structure() from xml2
-xml_structure(html)
-capture.output(xml_structure(html))
+xml_structure(html) # html commands - not content
+capture.output(xml_structure(html))  # vectorised
 
 # That's quite a big html! maybe we should go back to square 1 and inspect the 
 # page...
@@ -43,11 +80,15 @@ capture.output(xml_structure(html))
 # gives a good overview of the difference between the two.
 
 # html nodes using html_nodes()
-html %>%
-  html_nodes() # try searching for the table node
+html %>%   # deprecated
+  html_nodes("table") # try searching for the table node
 
 html %>%
-  html_nodes() # we could also try using the class - add a dot before
+  html_elements("table") # try searching for the table node
+
+html %>%
+  html_nodes(".engineTable") # we could also try using the class - add a dot before
+
 
 # xpaths
 # To search using xpath selectors, we need to add the xpath argument.
@@ -58,7 +99,9 @@ html %>%
 
 # Try selecting the first node of the table class, and assign it to a new object
 tab1 <- html %>%
-  html_nodes()
+  html_nodes(xpath = "//table[position() = 1]")
+
+summary(tab1)
 
 # Let's look at the structure of this node. We could use the xml_structure() 
 # function, but the html is still too big. Try inspecting the object in the 
@@ -66,13 +109,13 @@ tab1 <- html %>%
 
 # We basically want "thead" and "tbody". How might we get those?
 tab2 <- tab1 %>%
-  html_nodes()
+  html_nodes(xpath = "//table/thead | //table/tbody")
 
 # We now have an object containing 2 lists. With a bit of work we can extract 
 # the text we want as a vector:
 heads <- tab2[1] %>%
   html_nodes(xpath = "//th") %>%
-  html_text()
+  html_text()     # retrieves the contents of cells
 
 body <- tab2[2] %>%
   html_nodes(xpath = "//tr/td") %>%
@@ -88,7 +131,8 @@ xml_children(tab1)
 # "thead" node, and our data are in the "tbody" node. The html_table() function 
 # can parse this type of structure automatically. Try it out, and assign the 
 # result to an object.
-dat <- 
+# index function return to extract from list
+dat <- html_table(tab1)[[1]]
 
 dat %>%
   filter(grepl("ENG|AUS", Player)) %>%
@@ -103,3 +147,29 @@ dat %>%
 # Now that we've managed to do that for bowlers, try completing all the steps 
 # yourselves on a new html - top international batsmen!
 batsmen <- "https://stats.espncricinfo.com/ci/content/records/223646.html"
+
+html2 <- read_html(batsmen)
+
+tab3 <- html2 %>%
+  html_nodes(xpath = "//table[position() = 1]")
+
+summary(tab3)
+
+dat2 <- html_table(tab3)[[1]]
+# NO not out
+dat2 %>%
+  #  filter(grepl("ENG|AUS", Player)) %>%
+  ggplot(aes(Inns, Runs)) +
+  geom_text(aes(label = Player)) +
+  geom_smooth(method = "lm")
+
+dat2 %>%
+  filter(grepl("ENG|AUS", Player)) %>%
+  ggplot(aes(Mat, Runs)) +
+  geom_text(aes(label = Player)) +
+  geom_smooth(method = "lm")
+
+
+##Packages
+# twitter - httr
+# gen javascript websites - jsonlite
