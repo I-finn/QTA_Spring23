@@ -1,0 +1,39 @@
+---
+title: "Using R Markdown"
+author: "Martyn Egan"
+date: "2023-02-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R markdown
+
+R markdown is a very convenient and useful tool for communicating R output. It allows us to write text directly into a file, which will then be rendered into a presentable format, and it also allows us to embed R code into our document, which will be processed when we "knit" the document, with the results presented in the "knitted" output.
+
+We have used R markdown files extensively in the course so far, so hopefully the format is now familiar to you. If you need a refresher on the basics of R markdown, this [cheat sheet](https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf) from R studio is very helpful. I suggest you download it and keep it open on your desktop while completing your homeworks.
+
+## R markdown and project reporting
+
+I want to emphasise to all of you that the purpose of R markdown is to *communicate* results. It is not intended to experiment with code or to run very long and complex models. That is what R scripts are for. You should limit your code in R markdown to what is necessary for *communication*. In the case of your homeworks, you need to communicate:
+
+1. That you know the correct code.
+2. That you have produced the correct results.
+
+To do this, *you do not necessarily need to produce the results from the code inside the R markdown file*. Instead:
+
+- You can run the code in an R script and save the output using the `saveRDS()` function. 
+- You can then read that output into the R markdown file using the `readRDS()` function inside a code chunk. 
+- You can include the original code that you used to create the output inside a separate chunk **which does not evaluate during knitting** by adding the `eval = FALSE` option to the brackets above that chunk.
+
+You do not need to do this for every line of code, and most code is fine to run inside R markdown. You should use your own judgement though to determine which code it is foolish to run inside R markdown: very intensive machine learning algorithms will certainly fall into this category.
+
+In general, I recommend you:
+
+1. Experiment with your code first in a separate R script. 
+2. Once you have the correct, minimal code necessary, create a single R script which contains the complete workflow of the analysis. 
+3. If running this script produces the correct results, you can then save any objects which result from computationally intensive algorithms using `saveRDS()`. 
+4. Finally, you can copy-paste the relevant sections of code from your final R script into the R markdown file, remembering to include the `eval = FALSE` option for those chunks which contain computationally intensive algorithms, and instead using `readRDS()` in a separate chunk to read in the object which you already created.
+
