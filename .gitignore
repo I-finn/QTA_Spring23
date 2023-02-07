@@ -1,3 +1,6 @@
+# outsized data files
+/tutorials/tutorial02/data/df2023.RDS
+
 # History files
 .Rhistory
 .Rapp.history
