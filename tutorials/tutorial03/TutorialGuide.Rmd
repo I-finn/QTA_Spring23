@@ -1,0 +1,38 @@
+---
+title: "Tutorial Guide, QTA Wk 3"
+author: "Martyn Egan"
+date: "2023-02-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Textual Statistics
+
+Today we'll be using the data we acquired last week to perform some basic textual analysis, including feature, keyness and sentiment analysis. These essentially descriptive statistics can help us in our exploratory analysis of textual data, before we move on to more complex machine-learning models, which we'll be doing in weeks 4 and 5.
+
+## Learning Outcomes
+
+By the end of today's class, you should be able to:
+
+1. Create a corpus and pre-process it to make a dfm.
+2. Calculate bais statistics on corpus/dfm objects, including ttr, keyness and sentiment.
+3. Plot these statistics using R, including how they change over time.
+
+## Case Study: Ukraine in the media, 2022 and 2023
+
+Last week we used the Guardian's web API to acquire a corpus of articles from the first month of this year on Ukraine. We also have a similar corpus of articles from January 2022 with which to compare this corpus. We might be interested in learning how coverage of the conflict has changed over this period: we discovered last week, for instance, that the term "Nato" was prominent in 2022, but not in 2023 (or at least, not in relation to Ukraine), while the word "give" has become prominent in 2023 in a way that it wasn't last year.
+
+Today we're going to review the pre-processing steps we took last week to produce two comparable corpuses and dfms, and then perform some textual analysis to see if we can identify any further findings from the data.
+
+## Comparing and contrasting
+
+When it comes to pre-processing our corpus and creating our dfm we have a couple of choices to make: do we treat our two corpuses separately, creating a different token list and dfm for each, or do we combine them at the pre-processing stage? Let's think for a moment what the advantages and disadvantages of each approach might be.
+
+With the `quanteda` package we could easily take either approach: we could use the `rbind()` function on the two Guardian API dataframes **prior** to creating the corpus, or we could use the `rbind()` function **after** we've created two separate dfms. We can do this because of oject-oriented programming: there is an `rbind()` [S3 method](https://quanteda.io/reference/cbind.dfm.html) for dfm objects.
+
+## Today's class
+
+As usual we'll be working with an R script, `tutorial03.R`, which you'll find in the `code` sub-repository on github. We'll also use the data.frames we worked with last week, which you'll find in this week's `data` sub-repository.
