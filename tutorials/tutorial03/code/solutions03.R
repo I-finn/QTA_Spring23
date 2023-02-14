@@ -27,8 +27,8 @@ corpSum23 %>%
   ylab("Mean Flesch-Kincaid")
 
 summary(colc22$z) # Look at the z scores and see what cut-off to use
-toks22 <- tokens_compound(toks22, pattern = colc22$collocation[colc22$z > 17.5])
-toks23 <- tokens_compound(toks23, pattern = colc23$collocation[colc23$z > 16])
+toks22 <- tokens_compound(toks22, pattern = colc22[colc22$z > 17.5])
+toks23 <- tokens_compound(toks23, pattern = colc23[colc23$z > 16])
 
 dfm22 <- dfm(toks22)
 dfm23 <- dfm(toks23)
