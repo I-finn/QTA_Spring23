@@ -1,0 +1,49 @@
+---
+title: "Tutorial Guide, QTA Wk 4"
+author: "Martyn Egan"
+date: "2023-02-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Supervised ML
+
+In this week's class we'll be going further in our use of QTA, and introducing some supervised machine learning techniques. "Supervised" ML typically involves labelled data: we already know that our data fall into discrete categories, and we want to train an ML algorithm to correctly classify according to those categories. 
+
+For instance, you might have positive or negative reviews for a product. Using human classifiers you would create a dataset of labelled reviews, "train" the algorithm on a subset of these (where the computer can "see" what the label is), and then use the algorithm to predict on the remaining data. A *confusion matrix* then shows you how well the algorithm did.
+
+Today we'll be looking at two particular methods for supervised machine learning: *naive Bayes classification* and *support vector machines*. We will only be looking at implementation in this class: if you have questions regarding the methodology, please raise these in lecture.
+
+## Learning Outcomes
+
+By the end of today's class, you should be able to:
+
+1. Design an ML protocol, including creating a test/train split, cross-validation, and a search grid for optimal model parameters.
+2. Run and evaluate a naive Bayes classification model.
+3. Run and evaluate a support vector machine (SVM) model.
+
+## Case Study: News or Opinion?
+
+Over the last couple of weeks we've been working on a corpus of articles drawn from the Guardian newspaper's API. As we saw, there are a number of different kinds of articles printed in the Guardian, from world news to sport and culture. What we're interested in today are two kinds of article on the Ukraine conflict: factual news reporting, and opinion or comment pieces. Human readers can usually distinguish between these according to style and tone. The question is, can a computer?
+
+We're fortunate that the Guardian's news and opinion articles come pre-labelled: we don't need to employ human labellers to do that for us. The fact they're pre-labelled also means we don't really need to create an ML model to classify for us, so this is maybe an unrealistic "test" case. I think though it's a useful example for seeing how sophisticated (or not) ML can be in distinguishing patterns in text.
+
+## Work flow
+
+Now that we've had a couple of weeks familiarising ourselves with `quanteda` and the various other packages for performing QTA, we're going to focus a bit more on how to generalise our workflow and make it extensible. There are a couple of extra files in this week's `code` repository that help with this. 
+
+Here's today's workflow:
+
+1. Acquire, read in and wrangle our data.
+2. Pre-process our corpus.
+3. Prepare our data for ML, including:
+    a. Creating a test-train-validate split.
+    b. Cross-validate.
+    c. Make a search grid for optimal parameters.
+4. Run a naive Bayes model and evaluate its performance.
+5. Run an SVM model and evaluate its performance.
+
+To complete these tasks we'll need to use a few new packages, including `caret`, which is a very powerful package for ML, including both preparing data and running models. We'll also use `MLmetrics` for evaluating our models, and `doParallel` to take advantage of parallel processing to speed up our computation. 

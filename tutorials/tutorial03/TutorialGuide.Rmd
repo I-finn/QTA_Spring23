@@ -18,7 +18,7 @@ Today we'll be using the data we acquired last week to perform some basic textua
 By the end of today's class, you should be able to:
 
 1. Create a corpus and pre-process it to make a dfm.
-2. Calculate bais statistics on corpus/dfm objects, including ttr, keyness and sentiment.
+2. Calculate basic statistics on corpus/dfm objects, including ttr, keyness and sentiment.
 3. Plot these statistics using R, including how they change over time.
 
 ## Case Study: Ukraine in the media, 2022 and 2023
