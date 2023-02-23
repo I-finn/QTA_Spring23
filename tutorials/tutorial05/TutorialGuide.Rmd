@@ -1,0 +1,41 @@
+---
+title: "Tutorial Guide, QTA Wk 5"
+author: "Martyn Egan"
+date: "2023-02-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Unsupervised ML
+
+In this week's class we'll be looking at machine learning techniques for unlabelled data, known as *unsupervised* machine learning. Such techniques typically involve clustering our data according to latent dimensions which the machine learning algorithm attempts to find. 
+
+There are different approaches to finding these dimensions, but today we'll be focussing on just one: the structural topic model (STM). STM takes a similar approach to latent Dirichlet allocation (LDA), but allows us to also incorporate metadata into our model, as well as relaxing assumptions about the distribution of words within topics. If you're interested in how STMs work, you can read [this](https://towardsdatascience.com/introduction-to-the-structural-topic-model-stm-34ec4bd5383) article.
+
+## Learning Outcomes
+
+By the end of today's class, you should be able to:
+
+1. Prepare your data for an STM
+2. Run, evaluate and interpret an STM model.
+3. Perform various visualisations of the STM, including incorporating a time series component.
+
+## Case Study: The Ukraine conflict
+
+Over the last few weeks we've been working on a corpus drawn from the Guardian API. Last week we discovered that an SVM model was able to distinguish between factual news and opinion pieces with a relatively high degree of accuracy, sensitivity and specificity. 
+
+This week we want to see whether ML can help us identify specific themes or topics within coverage of the Ukraine conflict, and whether these changed over the first half of 2022. 
+
+## Work flow
+
+Here's today's workflow:
+
+1. Read in our data.
+3. Prepare our data for ML.
+4. Run an STM and evaluate its performance.
+5. Visualise and interpret the output from the STM.
+
+To complete these tasks we'll need to use a few new packages, including `stm` and a few visualisations packages, such as `wordcloud` and `LDAvis`. Open your tutorial R script and let's begin.
