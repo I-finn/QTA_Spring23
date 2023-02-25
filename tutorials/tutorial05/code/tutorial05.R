@@ -2,6 +2,13 @@
 # Tutorial 5: Unsupervised ML #
 ###############################
 
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+setwd("../")
+getwd()
+
+# remove objects
+rm(list=ls())
+
 ## Load packages
 pkgTest <- function(pkg){
   new.pkg <- pkg[!(pkg %in% installed.packages()[,  "Package"])]
@@ -13,7 +20,7 @@ pkgTest <- function(pkg){
 # Acquire stmBrowser package from github
 if(!require(devtools)) install.packages("devtools")
 library(devtools)
-install_github("mroberts/stmBrowser",dependencies=TRUE)
+#install_github("mroberts/stmBrowser",dependencies=TRUE)
 
 lapply(c("tidyverse",
          "quanteda",
@@ -28,19 +35,83 @@ lapply(c("tidyverse",
 ## 1. Read in and wrangle data
 #     a) In the data folder you'll find a large data.frame object called 
 #        ukr_h1_2022. Read it in, and check the type of articles it contains.
-dat <- 
+dat <- readRDS("data/ukr_h1_2022")
 
+
+View(dat)
 #     b) Pre-process the data.frame.
+source("code/pre_processing.R")
+dat$section_name <- ifelse(dat$section_name == "World news", "World", 
+                           dat$section_name)
 
-  
+unique(dat$section_name)
+
+which(duplicated(dat$headline))
+# no duplicates
+# We can use the same code to drop duplicated headlines:
+#dat <- dat[-which(duplicated(dat$headline)),]
+#  ?duplicated(x, fromLast = "TRUE") - reverse search
+
+## 2. QTA Preparation
+
+
+# You need to a) Remove the large round symbol.
+# Let's also tidy the body_text column before we transform into a corpus
+dat$body_text <- str_replace(dat$body_text, "\u2022.+$", "")
+
+# want to exclude 'briefing' - too much noise - crosswords, etc
+
+dat <- dat[-str_detect(dat$headline, "briefing"),]
+
+head(dat)
+
+corp22 <- corpus(dat, 
+                 docid_field = "headline",
+                 text_field = "body_text")
+
+
+toks<-prep_toks(corp22)
+colls<-get_coll(toks)
+
+toks <- tokens_compound(toks, pattern = colls[colls$z > 10,])
+toks <- tokens_remove(quanteda::tokens(toks), "") 
+toks <- tokens(toks, remove_punct = TRUE, 
+               remove_symbols = TRUE, 
+               remove_numbers = TRUE , 
+               remove_url = TRUE, 
+               remove_separators = TRUE)
+
+# iterate
+extra_stopwords=c("said", "one", "also", "now", "say", 
+#                  "russian", "ukrainian", "ukraine", "russia",
+                  valuetype="fixed")
+toks <- tokens_remove(toks, extra_stopwords)
+
+
+# Create the dfm.
+dfm <- dfm(toks)
+
+
+#getwd()  # try docfreq = 50
 dfm <- dfm_trim(dfm, min_docfreq = 20)
+
+topfeatures(dfm)
 
 ## 2. Perform STM 
 # Convert dfm to stm
 stmdfm <- convert(dfm, to = "stm")
 
 # Set k
+# Constantine - tutorial on dropbox - 30 clusters
+# k = number of categories/clusters that we think will be in our data
+# lower k = less computation
+
 K <- 8
+rm(colls, dat, toks, corp22)
+# prevalence = topics vary over matrix of categories 
+# - conditional probability /a priori 
+# source/section_name = meta data which we use to control for expected differences
+# s() = smoothing function
 
 # Run STM algorithm
 modelFit <- stm(documents = stmdfm$documents,
@@ -63,6 +134,11 @@ saveRDS(modelFit, "data/modelFit")
 ## 3. Interpret Topic model 
 # Inspect most probable terms in each topic
 labelTopics(modelFit)
+# H Prob - most common words - less useful
+# FREX - frequency 
+# Lift - 
+# Score
+
 
 # Further interpretation: plotting frequent terms
 plot.STM(modelFit, 
@@ -84,10 +160,15 @@ cloud(modelFit,
       max.words = 50)
 
 # Reading documents with high probability topics: the findThoughts() function
+# standfirst = guardian's summary of the articles
 findThoughts(modelFit,
-             texts = dfm@docvars$standfirst, # If you include the original corpus text, we could refer to this here
-             topics = 1,
+             # If you include the original corpus text, we could refer to this here
+             texts = dfm@docvars$standfirst, 
+             topics = 5,
              n = 10)
+
+names(dfm@docvars)
+#can retrieve any docvar from dfm
 
 ## 4. Topic validation: predictive validity using time series data
 #     a) Convert metadata to correct format
@@ -113,9 +194,15 @@ ggplot(data = agg_theta,
 ## 5. Semantic validation (topic correlations)
 topic_correlations <- topicCorr(modelFit)
 plot.topicCorr(topic_correlations,
-               vlabels = seq(1:ncol(modelFit$theta)), # we could change this to a vector of meaningful labels
+               # we could change this to a vector of meaningful labels
+               vlabels = seq(1:ncol(modelFit$theta)), 
                vertex.color = "white",
                main = "Topic correlations")
+
+# measures of quality of model clustering - want high for both
+# use to id problems
+
+# use to deselect documents - need theoretical argument for dropping 
 
 ## 6. Topic quality (semantic coherence and exclusivity)
 topicQuality(model = modelFit,
@@ -132,8 +219,9 @@ SemEx <- as.data.frame(cbind(c(1:ncol(modelFit$theta)),
                                                documents = stmdfm$documents,
                                                M = 15)))
 
+names(SemEx)
 colnames(SemEx) <- c("k", "ex", "coh")
-
+# error
 SemExPlot <- ggplot(SemEx, aes(coh, ex)) +
   geom_text(aes(label=k)) +
   labs(x = "Semantic Coherence",
@@ -151,6 +239,7 @@ labelTopics(modelFit,
             topics = c(6,3))
 
 ## 7. Extended visualisations
+# opens in browser
 #     a) Using LDAvis
 toLDAvis(mod = modelFit,
          docs = stmdfm$documents,
@@ -175,8 +264,10 @@ estprop <- estimateEffect(formula = c(1:ncol(modelFit$theta)) ~ section_name + s
 
 summary(estprop)
 
+
 #     b) Plot topic probability differences
 custom_labels <- seq(1:K)
+# shows split of topics between categories - one is a reference value - check
 plot.estimateEffect(x = estprop,
                     #model = modelFit,
                     method = "difference",
@@ -185,8 +276,9 @@ plot.estimateEffect(x = estprop,
                     cov.value2 = "Opinion",
                     topics = estprop$topics,
                     #xlim = c(-.05, .05),
-                    labeltype = "custom",
-                    custom.labels = custom_labels)
+                    #labeltype = "custom",
+                    #custom.labels = custom_labels
+                    )
 
 #     c) Plot topic probability over time (similar to above plot in 4.)
 plot.estimateEffect(x = estprop,
@@ -203,12 +295,13 @@ plot.estimateEffect(x = estprop,
 ?searchK
 kResult <- searchK(documents = stmdfm$documents,
                    vocab = stmdfm$vocab,
-                   K=c(4:10),
+                   K=c(4:7),
                    init.type = "Spectral",
                    data = stmdfm$meta,
                    prevalence = ~ section_name + s(month(date)))
-                   #cores = 6) # This no longer works on windows 10 :(
+                   #cores = 4) # This no longer works on windows 10 :(
 
+saveRDS(kResult, "data/kResult")
 #kResult <- readRDS("data/kResult")                   
 plot(kResult)
 
